@@ -1,23 +1,23 @@
 -- Variables
 local QBCore = exports['qb-core']:GetCoreObject()
 local requiredItemsShowed = false
-local requiredItems = {[1] = {name = QBCore.Shared.Items["cryptostick"]["name"], image = QBCore.Shared.Items["cryptostick"]["image"]}}
+local requiredItems = { [1] = { name = QBCore.Shared.Items['cryptostick']['name'], image = QBCore.Shared.Items['cryptostick']['image'] } }
 
 -- Functions
 
 local function DrawText3Ds(coords, text)
 	SetTextScale(0.35, 0.35)
-    SetTextFont(4)
-    SetTextProportional(1)
-    SetTextColour(255, 255, 255, 215)
-    SetTextEntry("STRING")
-    SetTextCentre(true)
-    AddTextComponentString(text)
-    SetDrawOrigin(coords.x, coords.y, coords.z, 0)
-    DrawText(0.0, 0.0)
-    local factor = (string.len(text)) / 370
-    DrawRect(0.0, 0.0+0.0125, 0.017+ factor, 0.03, 0, 0, 0, 75)
-    ClearDrawOrigin()
+	SetTextFont(4)
+	SetTextProportional(1)
+	SetTextColour(255, 255, 255, 215)
+	BeginTextCommandDisplayText('STRING')
+	SetTextCentre(true)
+	AddTextComponentSubstringPlayerName(text)
+	SetDrawOrigin(coords.x, coords.y, coords.z, 0)
+	EndTextCommandDisplayText(0.0, 0.0)
+	local factor = (string.len(text)) / 370
+	DrawRect(0.0, 0.0 + 0.0125, 0.017 + factor, 0.03, 0, 0, 0, 75)
+	ClearDrawOrigin()
 end
 
 local function ExchangeSuccess()
@@ -50,16 +50,6 @@ local function SystemCrashCooldown()
 	end)
 end
 
-local function HackingSuccess(success)
-    if success then
-		TriggerEvent('mhacking:hide')
-        ExchangeSuccess()
-    else
-		TriggerEvent('mhacking:hide')
-		ExchangeFail()
-	end
-end
-
 CreateThread(function()
 	while true do
 		local sleep = 5000
@@ -74,26 +64,30 @@ CreateThread(function()
 						DrawText3Ds(Crypto.Exchange.coords, Lang:t('text.enter_usb'))
 						if not requiredItemsShowed then
 							requiredItemsShowed = true
-							TriggerEvent('inventory:client:requiredItems', requiredItems, true)
+							TriggerEvent('qb-inventory:client:requiredItems', requiredItems, true)
 						end
 
 						if IsControlJustPressed(0, 38) then
 							QBCore.Functions.TriggerCallback('qb-crypto:server:HasSticky', function(HasItem)
 								if HasItem then
-									TriggerEvent("mhacking:show")
-									TriggerEvent("mhacking:start", math.random(4, 6), 45, HackingSuccess)
+									local success = exports['qb-minigames']:Hacking(5, 30) -- code block size & seconds to solve
+									if success then
+										ExchangeSuccess()
+									else
+										ExchangeFail()
+									end
 								else
 									QBCore.Functions.Notify(Lang:t('error.you_dont_have_a_cryptostick'), 'error')
 								end
 							end)
 						end
 					else
-						DrawText3Ds(Crypto.Exchange.coords, Lang:t('text.system_is_rebooting', {rebootInfoPercentage = Crypto.Exchange.RebootInfo.percentage}) )
+						DrawText3Ds(Crypto.Exchange.coords, Lang:t('text.system_is_rebooting', { rebootInfoPercentage = Crypto.Exchange.RebootInfo.percentage }))
 					end
 				else
 					if requiredItemsShowed then
 						requiredItemsShowed = false
-						TriggerEvent('inventory:client:requiredItems', requiredItems, false)
+						TriggerEvent('qb-inventory:client:requiredItems', requiredItems, false)
 					end
 				end
 			end
